@@ -204,7 +204,7 @@ def main():
 
     norm_vect = normalize(vector)
 
-    result = learn(norm_vect, 100, cluster=40)
+    result = learn(norm_vect, 500, cluster=20)
 
     sent = split(result, norm_vect)
 
