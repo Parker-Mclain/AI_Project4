@@ -212,6 +212,18 @@ def main():
 
     print_feature_vector(count_words().items())
 
+    occured_twice_or_more = list(({k: v for k, v in count_words().items() if v > 1}).items())
+    print("Number of words with 2 or more occurrences:", len(occured_twice_or_more))
+
+    occured_three_or_more = list(({k: v for k, v in count_words().items() if v > 2}).items())
+    print("Number of words with 3 or more occurrences:", len(occured_three_or_more))
+
+    # for a in range(len(occured_twice_or_more)):
+    #     for b in range(len(occured_twice_or_more[a])):
+    #         print(occured_twice_or_more[a][b])
+
+
+
     def to_string(tuple):
         return str(tuple[0]) + ") " + tuple[1]
 
