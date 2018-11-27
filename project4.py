@@ -2,47 +2,10 @@ import numpy as np
 import Project4_code.Porter_Stemmer_Python as PorterStemmer
 from beautifultable import BeautifulTable
 import re
+import os
+import sys
 
-
-def get_sentences():
-    file = open("Project4_sentences/sentences.txt", "r", encoding="utf8")
-    result = re.sub(r"[^A-z \n]", "", file.read().lower()).split('\n')
-    file.close()
-    return result
-
-
-def get_stop():
-    file = open("Project4_sentences/stop_words.txt", 'r', encoding="utf8")
-    result = file.read().split('\n')
-    file.close()
-    return result
-
-
-def tokenize(sent):
-    return list(map(lambda sentence: sentence.split(), sent))
-
-
-def delete_stop(sent):
-    stop_words = get_stop()
-
-    def remove_stop_words_from_one_sentence(sentence):
-        return list(filter(lambda word: not stop_words.__contains__(word), sentence))
-
-    return list(map(remove_stop_words_from_one_sentence, sent))
-
-
-def stemm(sent):
-    porter = PorterStemmer.PorterStemmer()
-
-    def delete_stop_one(sentence):
-        return list(map(lambda word: porter.stem(word, 0, len(word) - 1), sentence))
-
-    return list(map(delete_stop_one, sent))
-
-
-def clean_text():
-    return stemm(delete_stop(tokenize(get_sentences())))
-
+epsilon = 0.05
 
 def get_words(min=0):
     if min > 0:
@@ -80,8 +43,6 @@ def feat_vector(min=0):
         vector = len(words) * [0]
 
         for word in sentence:
-            # If we only want the words with `n` min,
-            # the word may not exist in `encountered_words`
             if words.__contains__(word):
                 vector[words.index(word)] += 1
 
@@ -115,13 +76,9 @@ def print_TDM_table(table):
 def nearest_cluster(cluster_weights, current_pattern):
     distance = np.zeros(len(cluster_weights))
 
-    # Euclidean distance:
-
-    # For each cluster
     for i in range(len(cluster_weights)):
         distance[i] = 0
 
-        # For each word
         for j in range(len(current_pattern)):
             val = pow((current_pattern[j] - cluster_weights[i][j]), 2)
             distance[i] = distance[i] + val
@@ -139,9 +96,10 @@ def learn(objects, iterations, cluster=1):
     weight = np.random.rand(cluster, len(objects[0]))
 
     for q in range(iterations):
+        print("Iteration:", q)
         for obj in objects:
             index = nearest_cluster(weight, obj)
-            change = 0.05 * (obj - weight[index])
+            change = epsilon * (obj - weight[index])
             weight[index] = weight[index] + change
 
     return weight
@@ -195,16 +153,15 @@ def print_feature_vector(words):
 
 
 def main():
-    min = 2
-    vector = feat_vector(min=min)
+    vector = feat_vector(min=2)
 
-    table = [get_words(min=min)] + vector
+    table = [get_words(min=2)] + vector
 
     print_TDM_table(table)
 
     norm_vect = normalize(vector)
 
-    result = learn(norm_vect, 500, cluster=20)
+    result = learn(norm_vect, 100, cluster=100)
 
     sent = split(result, norm_vect)
 
@@ -224,11 +181,11 @@ def main():
 
 
 
-    def to_string(tuple):
+    def get_string(tuple):
         return str(tuple[0]) + ") " + tuple[1]
 
     combine_sent = list(
-        map(lambda cluster: list(map(to_string, cluster)), sent))
+        map(lambda cluster: list(map(get_string, cluster)), sent))
 
     num_of_clusters = len(combine_sent)
 
@@ -239,6 +196,52 @@ def main():
 
     print("Completed", num_of_clusters)
 
+    # print("\n")
+    # print("\n")
+    # print("\n")
+    #
+    # if num_of_clusters < 3:
+    #     os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+def get_sentences():
+    file = open("Project4_sentences/sentences.txt", "r", encoding="utf8")
+    result = re.sub(r"[^A-z \n]", "", file.read().lower()).split('\n')
+    file.close()
+    return result
+
+
+def get_stop():
+    file = open("Project4_sentences/stop_words.txt", 'r', encoding="utf8")
+    result = file.read().split('\n')
+    file.close()
+    return result
+
+
+def tokenize(sent):
+    return list(map(lambda sentence: sentence.split(), sent))
+
+
+def delete_stop(sent):
+    stop_words = get_stop()
+
+    def remove_stop_words_from_one_sentence(sentence):
+        return list(filter(lambda word: not stop_words.__contains__(word), sentence))
+
+    return list(map(remove_stop_words_from_one_sentence, sent))
+
+
+def stemm(sent):
+    porter = PorterStemmer.PorterStemmer()
+
+    def delete_stop_one(sentence):
+        return list(map(lambda word: porter.stem(word, 0, len(word) - 1), sentence))
+
+    return list(map(delete_stop_one, sent))
+
+
+def clean_text():
+    return stemm(delete_stop(tokenize(get_sentences())))
 
 
 if __name__ == "__main__":
