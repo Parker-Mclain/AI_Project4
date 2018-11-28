@@ -96,7 +96,7 @@ def learn(objects, iterations, cluster=1):
     weight = np.random.rand(cluster, len(objects[0]))
 
     for q in range(iterations):
-        print("Iteration:", q)
+        # print("Iteration:", q)
         for obj in objects:
             index = nearest_cluster(weight, obj)
             change = epsilon * (obj - weight[index])
